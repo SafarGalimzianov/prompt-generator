@@ -1,0 +1,129 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2>🔧 Генератор промптов для Deep Research в ChatGPT</h2>
+            </div>
+            <div class="card-body">
+                <form action="/generate" method="POST">
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">1. Введите тему исследования:</label>
+                        <input type="text" class="form-control" id="topic" name="topic" required value="{{ form_data.topic if form_data else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="report_lang" class="form-label">2. На каком языке должен быть отчет?</label>
+                        <select class="form-select" id="report_lang" name="report_lang">
+                            <option value="русский" {% if form_data and form_data.report_lang == 'русский' %}selected{% endif %}>Русский</option>
+                            <option value="английский" {% if form_data and form_data.report_lang == 'английский' %}selected{% endif %}>Английский</option>
+                            <option value="другой" {% if form_data and form_data.report_lang == 'другой' %}selected{% endif %}>Другой</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="search_lang" class="form-label">3. На каком языке искать материалы?</label>
+                        <select class="form-select" id="search_lang" name="search_lang">
+                            <option value="английский" {% if form_data and form_data.search_lang == 'английский' %}selected{% endif %}>Английский</option>
+                            <option value="русский" {% if form_data and form_data.search_lang == 'русский' %}selected{% endif %}>Русский</option>
+                            <option value="оба" {% if form_data and form_data.search_lang == 'оба' %}selected{% endif %}>Оба</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="depth" class="form-label">4. Какой уровень глубины?</label>
+                        <select class="form-select" id="depth" name="depth">
+                            <option value="введение" {% if form_data and form_data.depth == 'введение' %}selected{% endif %}>Введение</option>
+                            <option value="продвинутый" {% if form_data and form_data.depth == 'продвинутый' %}selected{% endif %}>Продвинутый</option>
+                            <option value="экспертный" {% if form_data and form_data.depth == 'экспертный' %}selected{% endif %}>Экспертный</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="source_type" class="form-label">5. Какие источники использовать?</label>
+                        <select class="form-select" id="source_type" name="source_type">
+                            <option value="научные" {% if form_data and form_data.source_type == 'научные' %}selected{% endif %}>Научные</option>
+                            <option value="любые" {% if form_data and form_data.source_type == 'любые' %}selected{% endif %}>Любые</option>
+                            <option value="только peer-reviewed" {% if form_data and form_data.source_type == 'только peer-reviewed' %}selected{% endif %}>Только peer-reviewed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="year_cutoff" class="form-label">6. С какого года использовать источники?</label>
+                        <input type="text" class="form-control" id="year_cutoff" name="year_cutoff" placeholder="например, 2017" value="{{ form_data.year_cutoff if form_data else '2017' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="keywords" class="form-label">7. Укажите ключевые слова (через запятую) или оставьте пустым:</label>
+                        <input type="text" class="form-control" id="keywords" name="keywords" value="{{ form_data.keywords if form_data else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="files_included" class="form-label">8. Использовать прикрепленные файлы?</label>
+                        <select class="form-select" id="files_included" name="files_included">
+                            <option value="no" {% if form_data and form_data.files_included == 'no' %}selected{% endif %}>Нет</option>
+                            <option value="yes" {% if form_data and form_data.files_included == 'yes' %}selected{% endif %}>Да</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="banality" class="form-label">9. Что в теме считается банальностью и не должно включаться?</label>
+                        <input type="text" class="form-control" id="banality" name="banality" placeholder="например: 'ИИ — это искусственный интеллект'" value="{{ form_data.banality if form_data else '' }}">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Сгенерировать промпт</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        {% if prompt %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2>✅ Готовый промпт</h2>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyPrompt()">
+                    📋 Копировать
+                </button>
+            </div>
+            <div class="card-body">
+                <pre id="prompt-content" class="p-3 bg-light" style="white-space: pre-wrap;">{{ prompt }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyPrompt() {
+    const promptContent = document.getElementById('prompt-content');
+    
+    // Create a range and select the text
+    const range = document.createRange();
+    range.selectNode(promptContent);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    
+    // Copy the text to clipboard
+    document.execCommand('copy');
+    
+    // Deselect the text
+    window.getSelection().removeAllRanges();
+    
+    // Show a notification or change button text temporarily
+    const copyButton = document.querySelector('button.btn-outline-secondary');
+    const originalText = copyButton.innerHTML;
+    copyButton.innerHTML = '✅ Скопировано!';
+    
+    setTimeout(() => {
+        copyButton.innerHTML = originalText;
+    }, 2000);
+}
+</script>
+{% endblock %}

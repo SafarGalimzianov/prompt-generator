@@ -12,6 +12,19 @@ def generate_deep_research_prompt():
     banality = input("9. Что в теме считается банальностью и не должно включаться? (например: 'ИИ — это искусственный интеллект'): ").strip()
 
     # 🧩 Сборка финального промпта
+    prompt = generate_deep_research_prompt_web(
+        topic, report_lang, search_lang, depth, source_type, 
+        year_cutoff, keywords, files_included, banality
+    )
+    
+    print("\n✅ Твой готовый промпт:\n")
+    print(prompt)
+
+def generate_deep_research_prompt_web(
+    topic, report_lang, search_lang, depth, source_type,
+    year_cutoff, keywords, files_included, banality
+):
+    """Web-friendly version that accepts parameters and returns the prompt"""
     prompt = f"""
 Проанализируй тему: **"{topic}"**.
 
@@ -42,8 +55,7 @@ def generate_deep_research_prompt():
 
 Если готов — начинай.
 """
-    print("\n✅ Твой готовый промпт:\n")
-    print(prompt)
+    return prompt
 
 # Запуск генератора
 if __name__ == "__main__":
